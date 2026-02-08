@@ -1,29 +1,9 @@
-import { Pane } from './Pane';
-
-interface ShellLine {
-  type: 'input' | 'output' | 'error' | 'system';
-  content: string;
-  prompt?: string;
-}
-
-interface PaneData {
-  id: string;
-  shellHistory: ShellLine[];
-  currentInput: string;
-  cwd: string;
-  isActive: boolean;
-}
-
-interface PaneLayout {
-  type: 'leaf' | 'horizontal' | 'vertical';
-  paneId?: string;
-  children?: PaneLayout[];
-  size?: number;
-}
+import { Pane } from './pane';
+import type { PaneLayout, TmuxPane } from '../types';
 
 interface PaneContainerProps {
   layout: PaneLayout;
-  panes: PaneData[];
+  panes: TmuxPane[];
   zoomedPaneId: string | null;
   onInput: (paneId: string, char: string) => void;
   onKeyDown: (paneId: string, e: React.KeyboardEvent) => void;
@@ -81,7 +61,7 @@ function LayoutRenderer({
   onFocus,
 }: {
   layout: PaneLayout;
-  panes: PaneData[];
+  panes: TmuxPane[];
   onInput: (paneId: string, char: string) => void;
   onKeyDown: (paneId: string, e: React.KeyboardEvent) => void;
   onFocus: (paneId: string) => void;

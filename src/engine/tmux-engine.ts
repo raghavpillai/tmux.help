@@ -1,25 +1,7 @@
 // ─── Types ──────────────────────────────────────────────────────────────
 
-export interface ShellLine {
-  type: 'input' | 'output' | 'error' | 'system';
-  content: string;
-  prompt?: string;
-}
-
-export interface TmuxPane {
-  id: string;
-  shellHistory: ShellLine[];
-  currentInput: string;
-  cwd: string;
-  isActive: boolean;
-}
-
-export interface PaneLayout {
-  type: 'leaf' | 'horizontal' | 'vertical';
-  paneId?: string;
-  children?: PaneLayout[];
-  size?: number;
-}
+import type { ShellLine, PaneLayout, TmuxPane } from '../types';
+export type { ShellLine, PaneLayout, TmuxPane };
 
 export interface TmuxWindow {
   id: string;
@@ -638,6 +620,7 @@ export class TmuxEngine {
             this.activeSessionId = session.id;
             this.isAttached = true;
             this.isInsideTmux = true;
+            this.restoreActivePane();
             this.addSystemMessage(pane.id, `[tmux] Attached to session "${session.name}"`);
             this.recordAction('session-attached');
           } else {
@@ -649,6 +632,7 @@ export class TmuxEngine {
             this.activeSessionId = session.id;
             this.isAttached = true;
             this.isInsideTmux = true;
+            this.restoreActivePane();
             this.addSystemMessage(pane.id, `[tmux] Attached to session "${session.name}"`);
             this.recordAction('session-attached');
           } else {
@@ -1278,6 +1262,13 @@ export class TmuxEngine {
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
+
+  private restoreActivePane(): void {
+    const window = this.getActiveWindow();
+    if (!window) return;
+    const pane = window.panes.find((p) => p.id === window.activePaneId);
+    if (pane) pane.isActive = true;
+  }
 
   private findPane(paneId: string): TmuxPane | null {
     for (const session of this.sessions) {

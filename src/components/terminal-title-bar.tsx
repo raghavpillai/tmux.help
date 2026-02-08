@@ -1,6 +1,5 @@
 interface TerminalTitleBarProps {
   title: string;
-  onClose?: () => void;
 }
 
 export function TerminalTitleBar({ title }: TerminalTitleBarProps) {
@@ -14,7 +13,7 @@ export function TerminalTitleBar({ title }: TerminalTitleBarProps) {
       }}
     >
       {/* Traffic light buttons */}
-      <div className="flex gap-2 shrink-0">
+      <div className="flex gap-2 shrink-0" aria-hidden="true">
         <div
           className="w-3 h-3 rounded-full"
           style={{ background: '#a3413a' }}

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { KeyCombo } from './KeyCombo';
+import { useState, useEffect, useMemo } from 'react';
+import { KeyCombo } from './key-combo';
 import type { Chapter, Lesson, KeyCombo as KeyComboType } from '../lessons/curriculum';
 
 interface SidebarProps {
@@ -29,7 +29,10 @@ export function Sidebar({
     }
   }, [currentChapter?.id]);
 
-  const totalLessons = curriculum.reduce((sum, ch) => sum + ch.lessons.length, 0);
+  const totalLessons = useMemo(
+    () => curriculum.reduce((sum, ch) => sum + ch.lessons.length, 0),
+    [curriculum],
+  );
   const progressPercent = (completedLessons.size / totalLessons) * 100;
 
   return (
@@ -66,6 +69,10 @@ export function Sidebar({
           <div
             className="flex-1 h-[5px] rounded-full overflow-hidden"
             style={{ background: '#171d26' }}
+            role="progressbar"
+            aria-valuenow={completedLessons.size}
+            aria-valuemin={0}
+            aria-valuemax={totalLessons}
           >
             <div
               className="h-full rounded-full transition-all duration-500 ease-out"
@@ -98,23 +105,16 @@ export function Sidebar({
             <div key={chapter.id} className="mb-0.5">
               {/* Chapter header */}
               <button
-                className="w-full flex items-center gap-2 py-[9px] text-left text-[11px] transition-colors duration-100"
+                className={`sidebar-chapter w-full flex items-center gap-2 py-[9px] text-left text-[11px] transition-colors duration-100${isExpanded ? ' expanded' : ''}`}
                 style={{
                   color: chapterCompleted ? '#41b65c' : '#c5cdd8',
-                  background: isExpanded ? '#111720' : 'transparent',
                   padding: '9px 28px 9px 20px',
                 }}
                 onClick={() =>
                   setExpandedChapter(isExpanded ? null : chapter.id)
                 }
-                onMouseEnter={(e) => {
-                  if (!isExpanded)
-                    (e.currentTarget as HTMLElement).style.background = '#0e1219';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isExpanded)
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                }}
+                aria-expanded={isExpanded}
+                aria-label={`${chapter.title} - ${chapterProgress} of ${chapter.lessons.length} complete`}
               >
                 <span className="text-sm">{chapter.icon}</span>
                 <span className="flex-1 font-semibold truncate">{chapter.title}</span>
@@ -145,34 +145,21 @@ export function Sidebar({
                     return (
                       <button
                         key={lesson.id}
-                        className="w-full flex items-center gap-2 text-left text-[11px] transition-colors duration-100"
+                        className={`sidebar-lesson w-full flex items-center gap-2 text-left text-[11px] transition-colors duration-100${isCurrent ? ' current' : ''}`}
                         style={{
                           color: isCompleted
                             ? '#41b65c'
                             : isCurrent
                             ? '#4e9af5'
                             : '#565e6a',
-                          background: isCurrent
-                            ? 'rgba(78,154,245,0.07)'
-                            : 'transparent',
                           borderLeft: isCurrent
                             ? '2px solid #4e9af5'
                             : '2px solid transparent',
                           padding: '6px 28px 6px 36px',
                         }}
                         onClick={() => onLessonSelect(lesson.id)}
-                        onMouseEnter={(e) => {
-                          if (!isCurrent)
-                            (e.currentTarget as HTMLElement).style.background =
-                              '#0e1219';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isCurrent)
-                            (e.currentTarget as HTMLElement).style.background =
-                              isCurrent
-                                ? 'rgba(78,154,245,0.07)'
-                                : 'transparent';
-                        }}
+                        aria-label={`${lesson.title}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+                        aria-current={isCurrent ? 'step' : undefined}
                       >
                         <span className="w-4 text-center shrink-0 text-[10px]">
                           {isCompleted ? '\u2713' : isCurrent ? '\u25CF' : '\u25CB'}
@@ -269,15 +256,8 @@ export function Sidebar({
                     </div>
                   ))}
                   <button
-                    className="text-[10px] mt-1 transition-colors duration-100"
-                    style={{ color: '#565e6a' }}
+                    className="sidebar-hint-link text-[10px] mt-1 transition-colors duration-100"
                     onClick={onRequestHint}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLElement).style.color = '#4e9af5')
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLElement).style.color = '#565e6a')
-                    }
                   >
                     {hintIndex === 0 ? 'Need a hint?' : 'Another hint?'}
                   </button>

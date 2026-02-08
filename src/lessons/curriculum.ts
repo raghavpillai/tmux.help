@@ -507,16 +507,3 @@ export function getNextLesson(currentId: string): Lesson | undefined {
   return allLessons[index + 1];
 }
 
-export function getChapterForLesson(lessonId: string): Chapter | undefined {
-  return curriculum.find((chapter) =>
-    chapter.lessons.some((lesson) => lesson.id === lessonId)
-  );
-}
-
-export function getTotalLessons(): number {
-  return allLessons.length;
-}
-
-export function getLessonIndex(lessonId: string): number {
-  return allLessons.findIndex((lesson) => lesson.id === lessonId);
-}

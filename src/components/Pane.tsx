@@ -1,10 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-
-interface ShellLine {
-  type: 'input' | 'output' | 'error' | 'system';
-  content: string;
-  prompt?: string;
-}
+import type { ShellLine } from '../types';
 
 interface PaneProps {
   paneId: string;
@@ -41,7 +36,7 @@ export function Pane({
 
   useEffect(() => {
     if (isActive && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [isActive]);
 

@@ -14,12 +14,18 @@ export function Toast({ message, type, onDismiss, duration = 3000 }: ToastProps)
   useEffect(() => {
     requestAnimationFrame(() => setIsVisible(true));
 
-    const timeout = setTimeout(() => {
+    const exitTimeout = setTimeout(() => {
       setIsExiting(true);
-      setTimeout(onDismiss, 300);
     }, duration);
 
-    return () => clearTimeout(timeout);
+    const dismissTimeout = setTimeout(() => {
+      onDismiss();
+    }, duration + 300);
+
+    return () => {
+      clearTimeout(exitTimeout);
+      clearTimeout(dismissTimeout);
+    };
   }, [duration, onDismiss]);
 
   const colors = {
@@ -37,6 +43,7 @@ export function Toast({ message, type, onDismiss, duration = 3000 }: ToastProps)
         transform: `translateX(-50%) translateY(${isVisible && !isExiting ? '0' : '-16px'})`,
         opacity: isVisible && !isExiting ? 1 : 0,
       }}
+      role="alert"
     >
       <div
         className="flex items-start gap-3 px-4 py-3 rounded-lg text-[12px] leading-relaxed"

@@ -106,6 +106,34 @@ html, body, #root {
   scrollbar-width: none;
 }
 
+/* Sidebar hover states via CSS instead of inline JS */
+.sidebar-chapter {
+  background: transparent;
+}
+.sidebar-chapter.expanded {
+  background: #111720;
+}
+.sidebar-chapter:not(.expanded):hover {
+  background: #0e1219;
+}
+
+.sidebar-lesson {
+  background: transparent;
+}
+.sidebar-lesson.current {
+  background: rgba(78, 154, 245, 0.07);
+}
+.sidebar-lesson:not(.current):hover {
+  background: #0e1219;
+}
+
+.sidebar-hint-link {
+  color: #565e6a;
+}
+.sidebar-hint-link:hover {
+  color: #4e9af5;
+}
+
 
 @keyframes blink {
   0%, 100% { opacity: 1; }

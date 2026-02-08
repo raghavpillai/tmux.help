@@ -32,6 +32,8 @@ export function TmuxStatusBar({ sessionName, windows, prefixActive, mode }: Tmux
         fontFamily: "'Geist Mono', monospace",
         letterSpacing: '0.01em',
       }}
+      role="status"
+      aria-label={`tmux status bar - session ${sessionName}${prefixActive ? ' - prefix active' : ''}`}
     >
       {/* Session name */}
       <span

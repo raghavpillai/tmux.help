@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { TmuxEngine } from './engine/TmuxEngine';
-import type { TmuxEvent } from './engine/TmuxEngine';
-import { TerminalTitleBar } from './components/TerminalTitleBar';
-import { TmuxStatusBar } from './components/TmuxStatusBar';
-import { PaneContainer } from './components/PaneContainer';
-import { Sidebar } from './components/Sidebar';
-import { Toast } from './components/Toast';
+import { TmuxEngine } from './engine/tmux-engine';
+import type { TmuxEvent } from './engine/tmux-engine';
+import { TerminalTitleBar } from './components/terminal-title-bar';
+import { TmuxStatusBar } from './components/tmux-status-bar';
+import { PaneContainer } from './components/pane-container';
+import { Sidebar } from './components/sidebar';
+import { Toast } from './components/toast';
 import {
   curriculum,
   getLessonById,
