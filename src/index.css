@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: 'Geist Mono', 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+
+  --color-terminal-bg: #0a0e14;
+  --color-terminal-surface: #131820;
+  --color-terminal-border: #1e2630;
+  --color-terminal-text: #c5cdd8;
+  --color-terminal-dim: #565e6a;
+  --color-terminal-green: #41b65c;
+  --color-terminal-blue: #4e9af5;
+  --color-terminal-yellow: #dba036;
+  --color-terminal-red: #e55048;
+  --color-terminal-purple: #b07ee8;
+  --color-terminal-cyan: #39d353;
+  --color-terminal-orange: #f0883e;
+
+  --color-tmux-status-bg: #1a7f37;
+  --color-tmux-status-text: #ffffff;
+  --color-tmux-active-border: #41b65c;
+  --color-tmux-inactive-border: #1e2630;
+
+  --color-sidebar-bg: #0a0e14;
+  --color-sidebar-surface: #131820;
+  --color-sidebar-hover: #171d26;
+  --color-sidebar-active: #1f6feb18;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-terminal-bg);
+  color: var(--color-terminal-text);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(78, 154, 245, 0.3);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Hide scrollbar in sidebar while keeping scroll functionality */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+.sidebar-scroll {
+  scrollbar-width: none;
+}
+
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(65, 182, 92, 0); }
+  50% { box-shadow: 0 0 8px 2px rgba(65, 182, 92, 0.15); }
+}
