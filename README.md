@@ -1,38 +1,45 @@
 # tmux.help
 
-Learn tmux by actually using it. No videos, no walls of text -- just a simulated terminal in your browser where you type real tmux commands and see what happens.
+A browser-based tmux tutorial. You type real tmux keybindings into a simulated terminal and it responds like tmux would. 23 lessons, nothing to install.
 
-## What this is
+## Why
 
-An interactive tmux tutorial that runs entirely in the browser. There's a fake terminal on the left and a lesson sidebar on the right. You work through 23 lessons across 6 chapters: starting sessions, splitting panes, managing windows, detaching/attaching, copy mode, and some useful tricks.
+Most tmux tutorials are blog posts you read once and forget. The keybindings don't stick until your fingers learn them. This puts a terminal in front of you and walks you through each command one at a time.
 
-The terminal behaves like tmux. Ctrl+b activates the prefix key. `%` splits horizontally. `"` splits vertically. Panes resize, windows rename, sessions detach. It's not a full tmux implementation, but it covers everything a beginner needs to build muscle memory.
+It's not a complete tmux emulation. It covers the commands that matter when you're starting out: splits, panes, windows, sessions, copy mode. Enough to stop Googling "tmux cheat sheet" every time you SSH into something.
 
-## Running it
+## Running locally
 
 ```bash
-npm install
-npm run dev
+bun install
+bun dev
 ```
 
-Opens at `localhost:5173`.
+That's it. Opens on `localhost:5173`.
 
 ## How it works
 
-The core is a `TmuxEngine` class that simulates tmux state -- sessions, windows, panes, layouts, prefix key handling, command mode, copy mode. It processes keyboard events and emits state changes that React renders.
+A ~1400-line `TmuxEngine` class handles all the simulation -- sessions, windows, panes, layout trees, prefix key state, command mode, copy mode. It takes keyboard events in and emits state changes out. React renders whatever the engine says the terminal looks like.
 
-Each lesson has a validation rule (either an action like `pane-split-horizontal` or a command string). When you do the right thing, the lesson completes and you move on.
+Each lesson defines a validation rule. Some check for specific actions (like `pane-split-horizontal`), others check if you typed a particular command. Do the thing, lesson completes, move to the next one.
 
-Built with React, TypeScript, Vite, and Tailwind CSS v4. Uses Geist Mono throughout.
+## The 23 lessons
 
-## Lessons
+Getting started (4) -- what tmux is, starting a session, prefix key, command mode
 
-1. **Getting started** -- What tmux is, creating sessions, the prefix key, command mode
-2. **Panes** -- Splitting, navigating, resizing, zooming, closing
-3. **Windows** -- Creating, switching, renaming, closing
-4. **Sessions** -- Creating named sessions, detaching, listing, reattaching
-5. **Copy mode** -- Scrollback and search
-6. **Pro tips** -- Mouse mode, config customization
+Panes (6) -- horizontal/vertical splits, navigating between panes, resizing, zoom, closing
+
+Windows (5) -- new windows, switching, renaming, closing
+
+Sessions (4) -- named sessions, detach, list, reattach
+
+Copy mode (2) -- scrollback, search
+
+Pro tips (2) -- mouse mode, config
+
+## Stack
+
+React, TypeScript, Vite, Tailwind v4, Biome. Geist Mono for the font.
 
 ## License
 
