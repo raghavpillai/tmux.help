@@ -1,24 +1,126 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { KeyCombo } from './key-combo';
 import type { Chapter, Lesson, KeyCombo as KeyComboType } from '../lessons/curriculum';
+import type { AppMode } from '../app';
+import { taskPool } from '../challenges/challenges';
 
 interface SidebarProps {
+  mode: AppMode;
+  onModeSwitch: (mode: AppMode) => void;
   curriculum: Chapter[];
   currentLessonId: string;
   completedLessons: Set<string>;
   onLessonSelect: (lessonId: string) => void;
   hintIndex: number;
   onRequestHint: () => void;
+  currentTaskIndex: number | null;
+  streak: number;
+  onSkipTask: () => void;
 }
 
 export function Sidebar({
+  mode,
+  onModeSwitch,
   curriculum,
   currentLessonId,
   completedLessons,
   onLessonSelect,
   hintIndex,
   onRequestHint,
+  currentTaskIndex,
+  streak,
+  onSkipTask,
 }: SidebarProps) {
+  return (
+    <div
+      className="flex flex-col h-full select-none overflow-hidden"
+      style={{
+        background: '#0a0e14',
+        borderLeft: '1px solid rgba(255,255,255,0.06)',
+        fontFamily: "'Geist Mono', monospace",
+      }}
+    >
+      {/* Header with mode tabs */}
+      <div
+        className="shrink-0"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div style={{ padding: '20px 28px 0 20px' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[15px] font-bold" style={{ color: '#41b65c' }}>
+              tmux
+            </span>
+            <span className="text-[15px] font-bold" style={{ color: '#c5cdd8' }}>
+              .help
+            </span>
+          </div>
+          <p className="text-[11px] mb-3" style={{ color: '#565e6a' }}>
+            Interactive tmux tutorial
+          </p>
+        </div>
+
+        {/* Mode tabs */}
+        <div className="flex" style={{ padding: '0 20px' }}>
+          <button
+            className="flex-1 py-2 text-[11px] font-semibold text-center transition-colors duration-100"
+            style={{
+              color: mode === 'learn' ? '#41b65c' : '#565e6a',
+              borderBottom: mode === 'learn' ? '2px solid #41b65c' : '2px solid transparent',
+            }}
+            onClick={() => onModeSwitch('learn')}
+          >
+            Learn
+          </button>
+          <button
+            className="flex-1 py-2 text-[11px] font-semibold text-center transition-colors duration-100"
+            style={{
+              color: mode === 'challenge' ? '#dba036' : '#565e6a',
+              borderBottom: mode === 'challenge' ? '2px solid #dba036' : '2px solid transparent',
+            }}
+            onClick={() => onModeSwitch('challenge')}
+          >
+            Challenge
+          </button>
+        </div>
+      </div>
+
+      {mode === 'learn' ? (
+        <LearnPanel
+          curriculum={curriculum}
+          currentLessonId={currentLessonId}
+          completedLessons={completedLessons}
+          onLessonSelect={onLessonSelect}
+          hintIndex={hintIndex}
+          onRequestHint={onRequestHint}
+        />
+      ) : (
+        <ChallengePanel
+          currentTaskIndex={currentTaskIndex}
+          streak={streak}
+          onSkip={onSkipTask}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Learn Panel ──────────────────────────────────────────────────────
+
+function LearnPanel({
+  curriculum,
+  currentLessonId,
+  completedLessons,
+  onLessonSelect,
+  hintIndex,
+  onRequestHint,
+}: {
+  curriculum: Chapter[];
+  currentLessonId: string;
+  completedLessons: Set<string>;
+  onLessonSelect: (lessonId: string) => void;
+  hintIndex: number;
+  onRequestHint: () => void;
+}) {
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const currentLesson = findLesson(curriculum, currentLessonId);
   const currentChapter = findChapterForLesson(curriculum, currentLessonId);
@@ -36,35 +138,9 @@ export function Sidebar({
   const progressPercent = (completedLessons.size / totalLessons) * 100;
 
   return (
-    <div
-      className="flex flex-col h-full select-none overflow-hidden"
-      style={{
-        background: '#0a0e14',
-        borderLeft: '1px solid rgba(255,255,255,0.06)',
-        fontFamily: "'Geist Mono', monospace",
-      }}
-    >
-      {/* Header */}
-      <div
-        className="shrink-0"
-        style={{
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-          padding: '20px 28px 16px 20px',
-        }}
-      >
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[15px] font-bold" style={{ color: '#41b65c' }}>
-            tmux
-          </span>
-          <span className="text-[15px] font-bold" style={{ color: '#c5cdd8' }}>
-            .help
-          </span>
-        </div>
-        <p className="text-[11px] mb-4" style={{ color: '#565e6a' }}>
-          Interactive tmux tutorial
-        </p>
-
-        {/* Progress bar */}
+    <>
+      {/* Progress bar */}
+      <div className="shrink-0" style={{ padding: '12px 28px 12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3">
           <div
             className="flex-1 h-[5px] rounded-full overflow-hidden"
@@ -103,7 +179,6 @@ export function Sidebar({
 
           return (
             <div key={chapter.id} className="mb-0.5">
-              {/* Chapter header */}
               <button
                 className={`sidebar-chapter w-full flex items-center gap-2 py-[9px] text-left text-[11px] transition-colors duration-100${isExpanded ? ' expanded' : ''}`}
                 style={{
@@ -135,7 +210,6 @@ export function Sidebar({
                 </span>
               </button>
 
-              {/* Lessons */}
               {isExpanded && (
                 <div className="py-0.5">
                   {chapter.lessons.map((lesson) => {
@@ -199,7 +273,6 @@ export function Sidebar({
             {currentLesson.description}
           </p>
 
-          {/* Objective */}
           <div
             className="rounded-md px-3 py-2.5 mb-3 text-[11px]"
             style={{
@@ -216,7 +289,6 @@ export function Sidebar({
             <div style={{ color: '#c5cdd8' }}>{currentLesson.objective}</div>
           </div>
 
-          {/* Key combos */}
           {currentLesson.keysToShow && currentLesson.keysToShow.length > 0 && (
             <div className="mb-3">
               {currentLesson.keysToShow.map((combo: KeyComboType, i: number) => (
@@ -237,7 +309,6 @@ export function Sidebar({
             </div>
           )}
 
-          {/* Hints */}
           {currentLesson.hints.length > 0 && (
             <div>
               {hintIndex < currentLesson.hints.length ? (
@@ -281,9 +352,136 @@ export function Sidebar({
           )}
         </div>
       )}
+    </>
+  );
+}
+
+// ─── Challenge Panel ──────────────────────────────────────────────────
+
+function ChallengePanel({
+  currentTaskIndex,
+  streak,
+  onSkip,
+}: {
+  currentTaskIndex: number | null;
+  streak: number;
+  onSkip: () => void;
+}) {
+  const [showHint, setShowHint] = useState(false);
+
+  // Reset hint when task changes
+  useEffect(() => {
+    setShowHint(false);
+  }, [currentTaskIndex]);
+
+  // Press 'h' to toggle hint
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'h' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      setShowHint((prev) => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const task = currentTaskIndex !== null ? taskPool[currentTaskIndex] : null;
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* Streak */}
+      <div
+        className="shrink-0 flex items-center justify-between"
+        style={{ padding: '14px 28px 14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <span className="text-[10px]" style={{ color: '#565e6a' }}>Streak</span>
+        <span className="text-[13px] font-bold tabular-nums" style={{ color: streak > 0 ? '#dba036' : '#565e6a' }}>
+          {streak}
+        </span>
+      </div>
+
+      {/* Current task */}
+      <div className="flex-1 flex flex-col items-center justify-center" style={{ padding: '0 28px' }}>
+        {task ? (
+          <>
+            <div
+              className="text-[9px] uppercase font-bold tracking-[0.1em] mb-4"
+              style={{ color: '#565e6a' }}
+            >
+              Your task
+            </div>
+            <div
+              className="text-[13px] font-semibold text-center leading-[1.6] mb-6"
+              style={{ color: '#c5cdd8' }}
+            >
+              {task.instruction}
+            </div>
+
+            {/* Hint toggle */}
+            <button
+              className="text-[10px] transition-colors duration-100 mb-2"
+              style={{ color: showHint ? '#dba036' : '#565e6a' }}
+              onClick={() => setShowHint(!showHint)}
+            >
+              {showHint ? '\u25BC Hide hint' : '\u25B6 Show hint (h)'}
+            </button>
+            {showHint && (
+              <div
+                className="text-[10px] px-3 py-2 rounded text-center"
+                style={{
+                  background: '#0a0e14',
+                  border: '1px solid #1e2630',
+                  color: '#dba036',
+                }}
+              >
+                {task.hint}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-[11px] text-center" style={{ color: '#565e6a' }}>
+            No task available for the current state.
+          </div>
+        )}
+      </div>
+
+      {/* Skip button */}
+      {task && (
+        <div
+          className="shrink-0"
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            background: '#0e1219',
+            padding: '12px 28px 12px 20px',
+          }}
+        >
+          <button
+            className="w-full text-[10px] py-2 rounded transition-colors duration-100"
+            style={{
+              color: '#565e6a',
+              border: '1px solid rgba(255,255,255,0.06)',
+              background: 'transparent',
+            }}
+            onClick={onSkip}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+              e.currentTarget.style.color = '#8b95a3';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#565e6a';
+            }}
+          >
+            Skip (resets streak)
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────
 
 function findLesson(curriculum: Chapter[], lessonId: string): Lesson | undefined {
   for (const chapter of curriculum) {

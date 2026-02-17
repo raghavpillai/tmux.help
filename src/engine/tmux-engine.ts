@@ -234,6 +234,30 @@ export class TmuxEngine {
     this.fs = createFS();
   }
 
+  reset(): void {
+    this.sessions = [];
+    this.activeSessionId = null;
+    this.isAttached = false;
+    this.isInsideTmux = false;
+    this.mode = 'normal';
+    this.prefixActive = false;
+    if (this.prefixTimeout) {
+      clearTimeout(this.prefixTimeout);
+      this.prefixTimeout = null;
+    }
+    this.zoomedPaneId = null;
+    this.confirmAction = null;
+    this.commandInput = '';
+    this.renameInput = '';
+    this.nextPaneId = 0;
+    this.nextWindowId = 0;
+    this.nextSessionId = 0;
+    this.actionHistory = [];
+    this.typedCommands = [];
+    this.fs = createFS();
+    this.emit({ type: 'state-changed' });
+  }
+
   // ─── Event Emitter ────────────────────────────────────────────────
 
   on(_event: string, callback: EventCallback): void {
@@ -776,21 +800,19 @@ export class TmuxEngine {
     if (idx !== -1) {
       // Determine if this layout's orientation matches the resize direction
       const isHorizontal = layout.type === 'horizontal';
-      const growDir = direction === 'right' || direction === 'down';
       const matchesAxis =
         (isHorizontal && (direction === 'left' || direction === 'right')) ||
         (!isHorizontal && (direction === 'up' || direction === 'down'));
 
       if (matchesAxis) {
-        const sibIdx = growDir ? idx + 1 : idx - 1;
+        // Direction = "grow toward that side" by taking space from the neighbor there
+        const towardStart = direction === 'left' || direction === 'up';
+        const sibIdx = towardStart ? idx - 1 : idx + 1;
         if (sibIdx >= 0 && sibIdx < layout.children.length) {
           const current = layout.children[idx].size || 50;
           const sibling = layout.children[sibIdx].size || 50;
-          const delta = growDir ? step : -step;
-          const newCurrent = Math.max(10, Math.min(90, current + delta));
-          const newSibling = Math.max(10, Math.min(90, sibling - delta));
-          layout.children[idx].size = newCurrent;
-          layout.children[sibIdx].size = newSibling;
+          layout.children[idx].size = Math.max(10, Math.min(90, current + step));
+          layout.children[sibIdx].size = Math.max(10, Math.min(90, sibling - step));
           return true;
         }
       }
@@ -1128,19 +1150,19 @@ export class TmuxEngine {
           this.splitPane('vertical');
           return true;
         case 'ArrowUp':
-          if (e.ctrlKey) { this.resizePane('up'); }
+          if (e.ctrlKey) { this.resizePane('up'); this.activatePrefix(); }
           else { this.navigatePane('up'); }
           return true;
         case 'ArrowDown':
-          if (e.ctrlKey) { this.resizePane('down'); }
+          if (e.ctrlKey) { this.resizePane('down'); this.activatePrefix(); }
           else { this.navigatePane('down'); }
           return true;
         case 'ArrowLeft':
-          if (e.ctrlKey) { this.resizePane('left'); }
+          if (e.ctrlKey) { this.resizePane('left'); this.activatePrefix(); }
           else { this.navigatePane('left'); }
           return true;
         case 'ArrowRight':
-          if (e.ctrlKey) { this.resizePane('right'); }
+          if (e.ctrlKey) { this.resizePane('right'); this.activatePrefix(); }
           else { this.navigatePane('right'); }
           return true;
         case 'c':

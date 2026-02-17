@@ -28,46 +28,31 @@ export function Toast({ message, type, onDismiss, duration = 3000 }: ToastProps)
     };
   }, [duration, onDismiss]);
 
-  const colors = {
-    success: { bg: '#162b1e', border: '#41b65c', icon: '\u2713' },
-    info: { bg: '#152240', border: '#4e9af5', icon: 'i' },
-    error: { bg: '#2d1518', border: '#e55048', icon: '!' },
-  };
-
-  const c = colors[type];
+  const prefix = { success: '[ok]', info: '[--]', error: '[!!]' };
 
   return (
     <div
-      className="fixed top-5 left-1/2 z-50 transition-all duration-300 ease-out"
+      className="fixed top-4 left-1/2 z-50 transition-all duration-200 ease-out"
       style={{
-        transform: `translateX(-50%) translateY(${isVisible && !isExiting ? '0' : '-16px'})`,
+        transform: `translateX(-50%) translateY(${isVisible && !isExiting ? '0' : '-12px'})`,
         opacity: isVisible && !isExiting ? 1 : 0,
       }}
       role="alert"
     >
       <div
-        className="flex items-start gap-3 px-4 py-3 rounded-lg text-[12px] leading-relaxed"
+        className="flex items-center gap-3 text-[12px]"
         style={{
-          background: c.bg,
-          border: `1px solid ${c.border}`,
+          background: type === 'success' ? '#162b1e' : type === 'error' ? '#2d1518' : '#152240',
+          border: `1px solid ${type === 'success' ? '#41b65c' : type === 'error' ? '#e55048' : '#4e9af5'}`,
           color: '#c5cdd8',
-          minWidth: '320px',
-          maxWidth: '520px',
-          backdropFilter: 'blur(12px)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03)',
+          padding: '7px 12px',
           fontFamily: "'Geist Mono', monospace",
         }}
       >
-        <span
-          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
-          style={{
-            background: c.border,
-            color: '#0a0e14',
-          }}
-        >
-          {c.icon}
+        <span style={{ color: type === 'success' ? '#41b65c' : type === 'error' ? '#e55048' : '#4e9af5' }}>
+          {prefix[type]}
         </span>
-        <span className="flex-1">{message}</span>
+        <span>{message}</span>
       </div>
     </div>
   );

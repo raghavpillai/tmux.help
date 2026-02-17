@@ -11,6 +11,9 @@ import {
   getLessonById,
   getNextLesson,
 } from './lessons/curriculum';
+import { taskPool, pickRandomTask } from './challenges/challenges';
+
+export type AppMode = 'learn' | 'challenge';
 
 function App() {
   const engineRef = useRef<TmuxEngine | null>(null);
@@ -25,11 +28,38 @@ function App() {
   const currentLessonRef = useRef(currentLessonId);
   currentLessonRef.current = currentLessonId;
 
+  // ─── Challenge mode state ──────────────────────────────────────────
+  const [mode, setMode] = useState<AppMode>('learn');
+  const [currentTaskIndex, setCurrentTaskIndex] = useState<number | null>(null);
+  const [streak, setStreak] = useState(0);
+
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+  const currentTaskIndexRef = useRef(currentTaskIndex);
+  currentTaskIndexRef.current = currentTaskIndex;
+
   if (!engineRef.current) {
     engineRef.current = new TmuxEngine();
   }
 
   const engine = engineRef.current;
+
+  // ─── Challenge: pick next task ─────────────────────────────────────
+
+  const pickNext = useCallback(() => {
+    const state = engine.getState();
+    const next = pickRandomTask(state, currentTaskIndexRef.current);
+    setCurrentTaskIndex(next);
+  }, [engine]);
+
+  const completeTask = useCallback(() => {
+    setStreak((s) => s + 1);
+    setToast({ message: 'Done!', type: 'success' });
+    // Pick next after a short delay so the engine state settles
+    setTimeout(() => pickNext(), 300);
+  }, [pickNext]);
+
+  // ─── Lesson completion ─────────────────────────────────────────────
 
   const completeLesson = useCallback(
     (lessonId: string, message: string) => {
@@ -54,15 +84,64 @@ function App() {
     []
   );
 
+  // ─── Event handler (learn + challenge) ─────────────────────────────
+
   useEffect(() => {
     const handler = (event: TmuxEvent) => {
       forceUpdate((n) => n + 1);
 
+      // ─── Challenge: re-pick if we have no task ─────────────
+      if (modeRef.current === 'challenge' && currentTaskIndexRef.current === null) {
+        const state = engine.getState();
+        const idx = pickRandomTask(state, null);
+        if (idx !== null) {
+          setCurrentTaskIndex(idx);
+        }
+        return;
+      }
+
+      // ─── Challenge validation ──────────────────────────────
+      if (modeRef.current === 'challenge' && currentTaskIndexRef.current !== null) {
+        const task = taskPool[currentTaskIndexRef.current];
+        if (!task) return;
+
+        if (event.type === 'action-performed' && task.validation.type === 'action') {
+          if (task.validation.action === event.action) {
+            completeTask();
+          }
+          return;
+        }
+
+        if (event.type === 'state-changed' && task.validation.type === 'command' && task.validation.command) {
+          const cmd = task.validation.command;
+          const state = engine.getState();
+          for (const session of state.sessions) {
+            for (const window of session.windows) {
+              for (const pane of window.panes) {
+                for (const line of pane.shellHistory) {
+                  if (line.type === 'input' && line.content.trim().includes(cmd)) {
+                    completeTask();
+                    return;
+                  }
+                }
+              }
+            }
+          }
+          for (const typed of engine.getTypedCommands()) {
+            if (typed.includes(cmd)) {
+              completeTask();
+              return;
+            }
+          }
+        }
+        return;
+      }
+
+      // ─── Learn validation ──────────────────────────────────
       if (event.type === 'action-performed') {
         let lesson = getLessonById(currentLessonRef.current);
         if (!lesson) return;
 
-        // Skip past completed lessons to find the next uncompleted one
         while (lesson && completedRef.current.has(lesson.id)) {
           const next = getNextLesson(lesson.id);
           if (!next) return;
@@ -113,7 +192,7 @@ function App() {
 
     engine.on('all', handler);
     return () => engine.off('all', handler);
-  }, [engine, completeLesson]);
+  }, [engine, completeLesson, completeTask]);
 
   const handleLessonSelect = useCallback((lessonId: string) => {
     setCurrentLessonId(lessonId);
@@ -149,6 +228,24 @@ function App() {
     },
     [engine]
   );
+
+  const handleModeSwitch = useCallback((newMode: AppMode) => {
+    setMode(newMode);
+    if (newMode === 'challenge') {
+      // Pick first task based on current state
+      const state = engine.getState();
+      const idx = pickRandomTask(state, null);
+      setCurrentTaskIndex(idx);
+      setStreak(0);
+    } else {
+      setCurrentTaskIndex(null);
+    }
+  }, [engine]);
+
+  const handleSkipTask = useCallback(() => {
+    setStreak(0);
+    pickNext();
+  }, [pickNext]);
 
   const state = engine.getState();
   const activeSession = engine.getActiveSession();
@@ -258,12 +355,17 @@ function App() {
 
         <div className="w-[360px] shrink-0 overflow-hidden">
           <Sidebar
+            mode={mode}
+            onModeSwitch={handleModeSwitch}
             curriculum={curriculum}
             currentLessonId={currentLessonId}
             completedLessons={completedLessons}
             onLessonSelect={handleLessonSelect}
             hintIndex={hintIndex}
             onRequestHint={handleRequestHint}
+            currentTaskIndex={currentTaskIndex}
+            streak={streak}
+            onSkipTask={handleSkipTask}
           />
         </div>
       </div>
