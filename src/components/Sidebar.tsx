@@ -40,7 +40,6 @@ export function Sidebar({
         fontFamily: "'Geist Mono', monospace",
       }}
     >
-      {/* Header with mode tabs */}
       <div
         className="shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
@@ -59,7 +58,6 @@ export function Sidebar({
           </p>
         </div>
 
-        {/* Mode tabs */}
         <div className="flex" style={{ padding: '0 20px' }}>
           <button
             className="flex-1 py-2 text-[11px] font-semibold text-center transition-colors duration-100"
@@ -104,8 +102,6 @@ export function Sidebar({
   );
 }
 
-// ─── Learn Panel ──────────────────────────────────────────────────────
-
 function LearnPanel({
   curriculum,
   currentLessonId,
@@ -139,7 +135,6 @@ function LearnPanel({
 
   return (
     <>
-      {/* Progress bar */}
       <div className="shrink-0" style={{ padding: '12px 28px 12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3">
           <div
@@ -166,7 +161,6 @@ function LearnPanel({
         </div>
       </div>
 
-      {/* Curriculum list */}
       <div className="flex-1 overflow-y-auto py-2 sidebar-scroll">
         {curriculum.map((chapter) => {
           const isExpanded = expandedChapter === chapter.id;
@@ -249,7 +243,6 @@ function LearnPanel({
         })}
       </div>
 
-      {/* Current lesson detail panel */}
       {currentLesson && (
         <div
           className="shrink-0 overflow-y-auto sidebar-scroll"
@@ -356,8 +349,6 @@ function LearnPanel({
   );
 }
 
-// ─── Challenge Panel ──────────────────────────────────────────────────
-
 function ChallengePanel({
   currentTaskIndex,
   streak,
@@ -369,12 +360,10 @@ function ChallengePanel({
 }) {
   const [showHint, setShowHint] = useState(false);
 
-  // Reset hint when task changes
   useEffect(() => {
     setShowHint(false);
   }, [currentTaskIndex]);
 
-  // Press 'h' to toggle hint
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'h' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       setShowHint((prev) => !prev);
@@ -390,7 +379,6 @@ function ChallengePanel({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* Streak */}
       <div
         className="shrink-0 flex items-center justify-between"
         style={{ padding: '14px 28px 14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
@@ -401,7 +389,6 @@ function ChallengePanel({
         </span>
       </div>
 
-      {/* Current task */}
       <div className="flex-1 flex flex-col items-center justify-center" style={{ padding: '0 28px' }}>
         {task ? (
           <>
@@ -418,7 +405,6 @@ function ChallengePanel({
               {task.instruction}
             </div>
 
-            {/* Hint toggle */}
             <button
               className="text-[10px] transition-colors duration-100 mb-2"
               style={{ color: showHint ? '#dba036' : '#565e6a' }}
@@ -446,7 +432,6 @@ function ChallengePanel({
         )}
       </div>
 
-      {/* Skip button */}
       {task && (
         <div
           className="shrink-0"
@@ -480,8 +465,6 @@ function ChallengePanel({
     </div>
   );
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────
 
 function findLesson(curriculum: Chapter[], lessonId: string): Lesson | undefined {
   for (const chapter of curriculum) {

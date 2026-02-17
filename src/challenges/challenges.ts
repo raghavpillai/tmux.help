@@ -5,7 +5,6 @@ export interface ChallengeTask {
   instruction: string;
   hint: string;
   validation: ValidationRule;
-  /** Returns true if this task is doable given the current engine state */
   canAttempt: (state: TmuxState) => boolean;
 }
 
@@ -28,7 +27,6 @@ const inCopyMode = (s: TmuxState) => inTmux(s) && s.mode === 'copy';
 const inNormalMode = (s: TmuxState) => inTmux(s) && s.mode === 'normal';
 
 export const taskPool: ChallengeTask[] = [
-  // ─── Pre-tmux tasks ────────────────────────────────────────────────
   {
     instruction: 'Start a tmux session',
     hint: 'Type `tmux` and press Enter.',
@@ -53,8 +51,6 @@ export const taskPool: ChallengeTask[] = [
     validation: { type: 'command', command: 'tmux attach' },
     canAttempt: (s) => notInTmux(s) && hasSessions(s),
   },
-
-  // ─── Inside tmux — panes ───────────────────────────────────────────
   {
     instruction: 'Split the pane vertically',
     hint: 'Press Ctrl+b then %.',
@@ -91,8 +87,6 @@ export const taskPool: ChallengeTask[] = [
     validation: { type: 'action', action: 'pane-closed' },
     canAttempt: (s) => inNormalMode(s) && hasMultiplePanes(s),
   },
-
-  // ─── Inside tmux — windows ─────────────────────────────────────────
   {
     instruction: 'Create a new window',
     hint: 'Press Ctrl+b then c.',
@@ -117,16 +111,12 @@ export const taskPool: ChallengeTask[] = [
     validation: { type: 'action', action: 'window-renamed' },
     canAttempt: inNormalMode,
   },
-
-  // ─── Inside tmux — session ─────────────────────────────────────────
   {
     instruction: 'Detach from the session',
     hint: 'Press Ctrl+b then d.',
     validation: { type: 'action', action: 'session-detached' },
     canAttempt: inNormalMode,
   },
-
-  // ─── Copy mode ─────────────────────────────────────────────────────
   {
     instruction: 'Enter copy mode',
     hint: 'Press Ctrl+b then [.',
@@ -139,8 +129,6 @@ export const taskPool: ChallengeTask[] = [
     validation: { type: 'action', action: 'copy-mode-exited' },
     canAttempt: inCopyMode,
   },
-
-  // ─── Command mode ──────────────────────────────────────────────────
   {
     instruction: 'Open the tmux command prompt',
     hint: 'Press Ctrl+b then :.',
@@ -149,7 +137,6 @@ export const taskPool: ChallengeTask[] = [
   },
 ];
 
-/** Pick a random task that's possible from the current state, avoiding lastTaskIndex */
 export function pickRandomTask(state: TmuxState, lastTaskIndex: number | null): number | null {
   const candidates = taskPool
     .map((task, i) => ({ task, i }))

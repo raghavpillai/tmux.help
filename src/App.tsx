@@ -28,7 +28,6 @@ function App() {
   const currentLessonRef = useRef(currentLessonId);
   currentLessonRef.current = currentLessonId;
 
-  // ─── Challenge mode state ──────────────────────────────────────────
   const [mode, setMode] = useState<AppMode>('learn');
   const [currentTaskIndex, setCurrentTaskIndex] = useState<number | null>(null);
   const [streak, setStreak] = useState(0);
@@ -44,8 +43,6 @@ function App() {
 
   const engine = engineRef.current;
 
-  // ─── Challenge: pick next task ─────────────────────────────────────
-
   const pickNext = useCallback(() => {
     const state = engine.getState();
     const next = pickRandomTask(state, currentTaskIndexRef.current);
@@ -55,11 +52,8 @@ function App() {
   const completeTask = useCallback(() => {
     setStreak((s) => s + 1);
     setToast({ message: 'Done!', type: 'success' });
-    // Pick next after a short delay so the engine state settles
     setTimeout(() => pickNext(), 300);
   }, [pickNext]);
-
-  // ─── Lesson completion ─────────────────────────────────────────────
 
   const completeLesson = useCallback(
     (lessonId: string, message: string) => {
@@ -84,13 +78,10 @@ function App() {
     []
   );
 
-  // ─── Event handler (learn + challenge) ─────────────────────────────
-
   useEffect(() => {
     const handler = (event: TmuxEvent) => {
       forceUpdate((n) => n + 1);
 
-      // ─── Challenge: re-pick if we have no task ─────────────
       if (modeRef.current === 'challenge' && currentTaskIndexRef.current === null) {
         const state = engine.getState();
         const idx = pickRandomTask(state, null);
@@ -100,7 +91,6 @@ function App() {
         return;
       }
 
-      // ─── Challenge validation ──────────────────────────────
       if (modeRef.current === 'challenge' && currentTaskIndexRef.current !== null) {
         const task = taskPool[currentTaskIndexRef.current];
         if (!task) return;
@@ -137,7 +127,6 @@ function App() {
         return;
       }
 
-      // ─── Learn validation ──────────────────────────────────
       if (event.type === 'action-performed') {
         let lesson = getLessonById(currentLessonRef.current);
         if (!lesson) return;
@@ -232,7 +221,6 @@ function App() {
   const handleModeSwitch = useCallback((newMode: AppMode) => {
     setMode(newMode);
     if (newMode === 'challenge') {
-      // Pick first task based on current state
       const state = engine.getState();
       const idx = pickRandomTask(state, null);
       setCurrentTaskIndex(idx);

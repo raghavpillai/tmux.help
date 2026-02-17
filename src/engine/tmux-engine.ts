@@ -1,5 +1,3 @@
-// ─── Types ──────────────────────────────────────────────────────────────
-
 import type { ShellLine, PaneLayout, TmuxPane } from '../types';
 export type { ShellLine, PaneLayout, TmuxPane };
 
@@ -44,8 +42,6 @@ export type TmuxEvent =
   | { type: 'action-performed'; action: string };
 
 type EventCallback = (event: TmuxEvent) => void;
-
-// ─── Fake Filesystem ──────────────────────────────────────────────────
 
 interface FSNode {
   type: 'file' | 'dir';
@@ -208,8 +204,6 @@ function normalizePath(cwd: string, target: string): string {
   return '/' + parts.join('/');
 }
 
-// ─── Engine ─────────────────────────────────────────────────────────────
-
 export class TmuxEngine {
   private sessions: TmuxSession[] = [];
   private activeSessionId: string | null = null;
@@ -258,8 +252,6 @@ export class TmuxEngine {
     this.emit({ type: 'state-changed' });
   }
 
-  // ─── Event Emitter ────────────────────────────────────────────────
-
   on(_event: string, callback: EventCallback): void {
     this.listeners.push(callback);
   }
@@ -292,8 +284,6 @@ export class TmuxEngine {
     return [...this.typedCommands];
   }
 
-  // ─── State ────────────────────────────────────────────────────────
-
   getState(): TmuxState {
     return {
       sessions: this.sessions,
@@ -324,8 +314,6 @@ export class TmuxEngine {
     if (!window) return null;
     return window.panes.find((p) => p.id === window.activePaneId) || null;
   }
-
-  // ─── Initialization ───────────────────────────────────────────────
 
   private createPane(cwd: string = '/home/user'): TmuxPane {
     const id = String(this.nextPaneId++);
@@ -379,12 +367,9 @@ export class TmuxEngine {
     return session;
   }
 
-  // ─── Shell Commands ───────────────────────────────────────────────
-
   executeCommand(paneId: string, command: string): void {
     const pane = this.findPane(paneId);
     if (!pane) {
-      // For pre-tmux terminal, just record enter-pressed
       if (command === '') {
         this.recordAction('enter-pressed');
       }
@@ -693,8 +678,6 @@ export class TmuxEngine {
     }
   }
 
-  // ─── Pane Operations ──────────────────────────────────────────────
-
   splitPane(direction: 'horizontal' | 'vertical'): void {
     const window = this.getActiveWindow();
     if (!window) return;
@@ -792,20 +775,17 @@ export class TmuxEngine {
   ): boolean {
     if (!layout.children || layout.children.length < 2) return false;
 
-    // Check if the active pane is a direct child
     const idx = layout.children.findIndex(
       (child) => child.type === 'leaf' && child.paneId === paneId
     );
 
     if (idx !== -1) {
-      // Determine if this layout's orientation matches the resize direction
       const isHorizontal = layout.type === 'horizontal';
       const matchesAxis =
         (isHorizontal && (direction === 'left' || direction === 'right')) ||
         (!isHorizontal && (direction === 'up' || direction === 'down'));
 
       if (matchesAxis) {
-        // Direction = "grow toward that side" by taking space from the neighbor there
         const towardStart = direction === 'left' || direction === 'up';
         const sibIdx = towardStart ? idx - 1 : idx + 1;
         if (sibIdx >= 0 && sibIdx < layout.children.length) {
@@ -818,7 +798,6 @@ export class TmuxEngine {
       }
     }
 
-    // Recurse into children
     for (const child of layout.children) {
       if (this.resizeInLayout(child, paneId, direction, step)) return true;
     }
@@ -890,8 +869,6 @@ export class TmuxEngine {
       children: filtered.map((child) => this.removeFromLayout(child, paneId)),
     };
   }
-
-  // ─── Window Operations ────────────────────────────────────────────
 
   createNewWindow(name?: string): void {
     const session = this.getActiveSession();
@@ -1008,8 +985,6 @@ export class TmuxEngine {
     this.emit({ type: 'state-changed' });
   }
 
-  // ─── Session Operations ───────────────────────────────────────────
-
   detachSession(): void {
     this.isAttached = false;
     this.isInsideTmux = false;
@@ -1028,10 +1003,7 @@ export class TmuxEngine {
     this.emit({ type: 'state-changed' });
   }
 
-  // ─── Key Handling ─────────────────────────────────────────────────
-
   handleKeyEvent(e: KeyboardEvent): boolean {
-    // Confirm mode
     if (this.mode === 'confirm') {
       if (e.key === 'y' || e.key === 'Y') {
         this.executeConfirmAction();
@@ -1043,7 +1015,6 @@ export class TmuxEngine {
       return true;
     }
 
-    // Command mode
     if (this.mode === 'command') {
       if (e.key === 'Escape') {
         this.mode = 'normal';
@@ -1071,7 +1042,6 @@ export class TmuxEngine {
       return true;
     }
 
-    // Rename mode
     if (this.mode === 'rename') {
       if (e.key === 'Escape') {
         this.mode = 'normal';
@@ -1106,7 +1076,6 @@ export class TmuxEngine {
       return true;
     }
 
-    // Copy mode
     if (this.mode === 'copy') {
       if (e.key === 'q' || e.key === 'Escape') {
         this.mode = 'normal';
@@ -1118,21 +1087,17 @@ export class TmuxEngine {
       return true;
     }
 
-    // Prefix key (Ctrl+b)
     if (!this.prefixActive && e.ctrlKey && e.key === 'b') {
       e.preventDefault();
       this.activatePrefix();
       return true;
     }
 
-    // After prefix
     if (this.prefixActive) {
-      // Ignore modifier-only keys so they don't consume prefix state
       if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
         return true;
       }
 
-      // Pressing Ctrl+b again while prefix is active: re-activate (keep prefix alive)
       if (e.ctrlKey && e.key === 'b') {
         this.activatePrefix();
         return true;
@@ -1283,8 +1248,6 @@ export class TmuxEngine {
     }
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────
-
   private restoreActivePane(): void {
     const window = this.getActiveWindow();
     if (!window) return;
@@ -1325,8 +1288,6 @@ export class TmuxEngine {
     if (path.startsWith('/home/user/')) return '~/' + path.slice('/home/user/'.length);
     return path;
   }
-
-  // ─── Input Handling (for React components) ────────────────────────
 
   handlePaneInput(paneId: string, char: string): void {
     const pane = this.findPane(paneId);
@@ -1400,8 +1361,6 @@ export class TmuxEngine {
       this.emit({ type: 'state-changed' });
     }
   }
-
-  // ─── Focus ────────────────────────────────────────────────────────
 
   focusPane(paneId: string): void {
     const window = this.getActiveWindow();
