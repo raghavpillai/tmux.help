@@ -1,6 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react';
-import type { ShellLine } from '../types';
+import { useCallback, useEffect, useRef } from 'react';
 import { shortenPath } from '../engine/tmux-engine';
+import type { ShellLine } from '../types';
 
 interface PaneProps {
   paneId: string;
@@ -29,6 +29,7 @@ export function Pane({
   const inputRef = useRef<HTMLInputElement>(null);
   const keyConsumedRef = useRef(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on content change is intentional
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -66,6 +67,7 @@ export function Pane({
         style={{ padding: '12px 20px 0' }}
       >
         {lines.map((line, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: shell lines have no stable unique ID
           <div key={i} className="whitespace-pre-wrap break-all">
             {line.type === 'input' && (
               <>
@@ -73,15 +75,9 @@ export function Pane({
                 <span style={{ color: '#c5cdd8' }}>{line.content}</span>
               </>
             )}
-            {line.type === 'output' && (
-              <span style={{ color: '#c5cdd8' }}>{line.content}</span>
-            )}
-            {line.type === 'error' && (
-              <span style={{ color: '#e55048' }}>{line.content}</span>
-            )}
-            {line.type === 'system' && (
-              <span style={{ color: '#4e9af5' }}>{line.content}</span>
-            )}
+            {line.type === 'output' && <span style={{ color: '#c5cdd8' }}>{line.content}</span>}
+            {line.type === 'error' && <span style={{ color: '#e55048' }}>{line.content}</span>}
+            {line.type === 'system' && <span style={{ color: '#4e9af5' }}>{line.content}</span>}
           </div>
         ))}
 

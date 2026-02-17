@@ -1,5 +1,5 @@
-import { Pane } from './pane';
 import type { PaneLayout, TmuxPane } from '../types';
+import { Pane } from './pane';
 
 interface PaneContainerProps {
   layout: PaneLayout;

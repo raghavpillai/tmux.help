@@ -5,15 +5,15 @@ interface KeyComboProps {
 }
 
 export function KeyCombo({ keys, isSequential = false, size = 'md' }: KeyComboProps) {
-  const sizeClasses = size === 'sm'
-    ? 'px-1.5 py-[2px] text-[10px] min-w-[20px]'
-    : 'px-2 py-1 text-xs min-w-[28px]';
+  const sizeClasses =
+    size === 'sm' ? 'px-1.5 py-[2px] text-[10px] min-w-[20px]' : 'px-2 py-1 text-xs min-w-[28px]';
 
   return (
     <span className="inline-flex items-center gap-1">
-      {keys.map((key, i) => (
-        <span key={i} className="inline-flex items-center gap-1">
-          {i > 0 && (
+      {keys.map((key, keyIndex) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: keys array has no stable unique identifier
+        <span key={keyIndex} className="inline-flex items-center gap-1">
+          {keyIndex > 0 && (
             <span className="text-[10px]" style={{ color: '#565e6a' }}>
               {isSequential ? 'then' : '+'}
             </span>

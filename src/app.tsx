@@ -1,17 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { TmuxEngine } from './engine/tmux-engine';
-import type { TmuxEvent } from './engine/tmux-engine';
-import { TerminalTitleBar } from './components/terminal-title-bar';
-import { TmuxStatusBar } from './components/tmux-status-bar';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { pickRandomTask, taskPool } from './challenges/challenges';
 import { PaneContainer } from './components/pane-container';
 import { Sidebar } from './components/sidebar';
+import { TerminalTitleBar } from './components/terminal-title-bar';
+import { TmuxStatusBar } from './components/tmux-status-bar';
 import { Toast } from './components/toast';
-import {
-  curriculum,
-  getLessonById,
-  getNextLesson,
-} from './lessons/curriculum';
-import { taskPool, pickRandomTask } from './challenges/challenges';
+import { TmuxEngine } from './engine/tmux-engine';
+import type { TmuxEvent } from './engine/tmux-engine';
+import { curriculum, getLessonById, getNextLesson } from './lessons/curriculum';
 
 export type AppMode = 'learn' | 'challenge';
 
@@ -42,7 +38,10 @@ function App() {
   const [currentLessonId, setCurrentLessonId] = useState(curriculum[0].lessons[0].id);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [hintIndex, setHintIndex] = useState(0);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'info' | 'error';
+  } | null>(null);
   const [detachedMessage, setDetachedMessage] = useState<string | null>(null);
   const completedRef = useRef(completedLessons);
   completedRef.current = completedLessons;
@@ -76,28 +75,25 @@ function App() {
     setTimeout(() => pickNext(), 300);
   }, [pickNext]);
 
-  const completeLesson = useCallback(
-    (lessonId: string, message: string) => {
-      if (completedRef.current.has(lessonId)) return;
+  const completeLesson = useCallback((lessonId: string, message: string) => {
+    if (completedRef.current.has(lessonId)) return;
 
-      setCompletedLessons((prev) => {
-        const next = new Set(prev);
-        next.add(lessonId);
-        return next;
-      });
+    setCompletedLessons((prev) => {
+      const next = new Set(prev);
+      next.add(lessonId);
+      return next;
+    });
 
-      setToast({ message, type: 'success' });
-      setHintIndex(0);
+    setToast({ message, type: 'success' });
+    setHintIndex(0);
 
-      setTimeout(() => {
-        const next = getNextLesson(lessonId);
-        if (next) {
-          setCurrentLessonId(next.id);
-        }
-      }, 1500);
-    },
-    []
-  );
+    setTimeout(() => {
+      const next = getNextLesson(lessonId);
+      if (next) {
+        setCurrentLessonId(next.id);
+      }
+    }, 1500);
+  }, []);
 
   useEffect(() => {
     const handler = (event: TmuxEvent) => {
@@ -123,7 +119,11 @@ function App() {
           return;
         }
 
-        if (event.type === 'state-changed' && task.validation.type === 'command' && task.validation.command) {
+        if (
+          event.type === 'state-changed' &&
+          task.validation.type === 'command' &&
+          task.validation.command
+        ) {
           if (hasMatchingCommand(engine, task.validation.command)) {
             completeTask();
           }
@@ -160,7 +160,7 @@ function App() {
         const { validation } = lesson;
         if (validation.type !== 'command' || !validation.command) return;
 
-        if (hasMatchingCommand(engine, validation.command!)) {
+        if (hasMatchingCommand(engine, validation.command)) {
           completeLesson(lesson.id, lesson.congratsMessage);
         }
       }
@@ -183,7 +183,7 @@ function App() {
     (paneId: string, char: string) => {
       engine.handlePaneInput(paneId, char);
     },
-    [engine]
+    [engine],
   );
 
   const handleKeyDown = useCallback(
@@ -195,27 +195,30 @@ function App() {
         setDetachedMessage(`[detached (from session ${engine.getActiveSession()?.name || '0'})]`);
       }
     },
-    [engine]
+    [engine],
   );
 
   const handleFocus = useCallback(
     (paneId: string) => {
       engine.focusPane(paneId);
     },
-    [engine]
+    [engine],
   );
 
-  const handleModeSwitch = useCallback((newMode: AppMode) => {
-    setMode(newMode);
-    if (newMode === 'challenge') {
-      const state = engine.getState();
-      const idx = pickRandomTask(state, null);
-      setCurrentTaskIndex(idx);
-      setStreak(0);
-    } else {
-      setCurrentTaskIndex(null);
-    }
-  }, [engine]);
+  const handleModeSwitch = useCallback(
+    (newMode: AppMode) => {
+      setMode(newMode);
+      if (newMode === 'challenge') {
+        const state = engine.getState();
+        const idx = pickRandomTask(state, null);
+        setCurrentTaskIndex(idx);
+        setStreak(0);
+      } else {
+        setCurrentTaskIndex(null);
+      }
+    },
+    [engine],
+  );
 
   const handleSkipTask = useCallback(() => {
     setStreak(0);
@@ -238,7 +241,10 @@ function App() {
   const showTmux = state.isInsideTmux && state.isAttached && activeWindow;
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden" style={{ background: '#0a0e14' }}>
+    <div
+      className="flex flex-col h-screen w-screen overflow-hidden"
+      style={{ background: '#0a0e14' }}
+    >
       <TerminalTitleBar
         title={
           showTmux
@@ -253,8 +259,8 @@ function App() {
             <>
               <div className="flex-1 overflow-hidden relative">
                 <PaneContainer
-                  layout={activeWindow!.layout}
-                  panes={activeWindow!.panes}
+                  layout={activeWindow.layout}
+                  panes={activeWindow.panes}
                   zoomedPaneId={state.zoomedPaneId}
                   onInput={handleInput}
                   onKeyDown={handleKeyDown}
@@ -264,7 +270,11 @@ function App() {
                 {state.mode === 'confirm' && (
                   <div
                     className="absolute bottom-0 left-0 right-0 h-[22px] flex items-center px-3 text-[11px]"
-                    style={{ background: '#b8860b', color: '#0a0e14', fontFamily: "'Geist Mono', monospace" }}
+                    style={{
+                      background: '#b8860b',
+                      color: '#0a0e14',
+                      fontFamily: "'Geist Mono', monospace",
+                    }}
                   >
                     {state.confirmAction === 'close-pane'
                       ? 'kill-pane? (y/n)'
@@ -275,7 +285,11 @@ function App() {
                 {state.mode === 'command' && (
                   <div
                     className="absolute bottom-0 left-0 right-0 h-[22px] flex items-center px-3 text-[11px]"
-                    style={{ background: '#236b2e', color: '#fff', fontFamily: "'Geist Mono', monospace" }}
+                    style={{
+                      background: '#236b2e',
+                      color: '#fff',
+                      fontFamily: "'Geist Mono', monospace",
+                    }}
                   >
                     <span style={{ color: '#dba036' }}>:</span>
                     <span>{state.commandInput}</span>
@@ -289,7 +303,11 @@ function App() {
                 {state.mode === 'rename' && (
                   <div
                     className="absolute bottom-0 left-0 right-0 h-[22px] flex items-center px-3 text-[11px]"
-                    style={{ background: '#236b2e', color: '#fff', fontFamily: "'Geist Mono', monospace" }}
+                    style={{
+                      background: '#236b2e',
+                      color: '#fff',
+                      fontFamily: "'Geist Mono', monospace",
+                    }}
                   >
                     <span style={{ color: '#dba036' }}>(rename-window) </span>
                     <span>{state.renameInput}</span>
@@ -314,7 +332,9 @@ function App() {
                 sessionName={activeSession?.name || '0'}
                 windows={windowInfos}
                 prefixActive={state.prefixActive}
-                mode={state.mode === 'copy' ? 'copy' : state.mode === 'command' ? 'command' : 'normal'}
+                mode={
+                  state.mode === 'copy' ? 'copy' : state.mode === 'command' ? 'command' : 'normal'
+                }
               />
             </>
           ) : (
@@ -353,7 +373,6 @@ function App() {
           duration={3500}
         />
       )}
-
     </div>
   );
 }
@@ -384,6 +403,7 @@ function PreTmuxTerminal({
     }
   }, [detachedMessage, onClearDetached]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on content change is intentional
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -432,7 +452,10 @@ function PreTmuxTerminal({
       setLines([]);
     } else if (e.ctrlKey && e.key === 'c') {
       e.preventDefault();
-      setLines((prev) => [...prev, { type: 'input', content: input + '^C', prompt: 'user@tmux-learn:~$ ' }]);
+      setLines((prev) => [
+        ...prev,
+        { type: 'input', content: `${input}^C`, prompt: 'user@tmux-learn:~$ ' },
+      ]);
       setInput('');
     }
   };
@@ -440,14 +463,24 @@ function PreTmuxTerminal({
   return (
     <div
       className="h-full w-full overflow-hidden cursor-text"
-      style={{ background: '#0a0e14', fontFamily: "'Geist Mono', monospace", fontSize: '13px', lineHeight: '1.6', padding: '12px 20px 0' }}
+      style={{
+        background: '#0a0e14',
+        fontFamily: "'Geist Mono', monospace",
+        fontSize: '13px',
+        lineHeight: '1.6',
+        padding: '12px 20px 0',
+      }}
       onClick={() => inputRef.current?.focus()}
     >
       <div ref={scrollRef} className="h-full overflow-y-auto">
         {lines.map((line, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: terminal lines have no stable ID
           <div key={i} className="whitespace-pre-wrap break-all">
             {line.type === 'input' && (
-              <><span style={{ color: '#41b65c' }}>{line.prompt}</span><span style={{ color: '#c5cdd8' }}>{line.content}</span></>
+              <>
+                <span style={{ color: '#41b65c' }}>{line.prompt}</span>
+                <span style={{ color: '#c5cdd8' }}>{line.content}</span>
+              </>
             )}
             {line.type === 'output' && <span style={{ color: '#c5cdd8' }}>{line.content}</span>}
             {line.type === 'error' && <span style={{ color: '#e55048' }}>{line.content}</span>}
@@ -460,7 +493,11 @@ function PreTmuxTerminal({
             <span style={{ color: '#c5cdd8' }}>{input}</span>
             <span
               className="inline-block w-[7.8px] h-[19px] align-middle"
-              style={{ background: '#c5cdd8', animation: 'blink 1s step-end infinite', marginLeft: '1px' }}
+              style={{
+                background: '#c5cdd8',
+                animation: 'blink 1s step-end infinite',
+                marginLeft: '1px',
+              }}
             />
             <input
               ref={inputRef}

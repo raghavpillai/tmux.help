@@ -1,4 +1,4 @@
-import type { ShellLine, PaneLayout, TmuxPane } from '../types';
+import type { PaneLayout, ShellLine, TmuxPane } from '../types';
 export type { ShellLine, PaneLayout, TmuxPane };
 
 export interface TmuxWindow {
@@ -187,7 +187,7 @@ function resolvePath(fs: FSNode, path: string): FSNode | null {
 
 function normalizePath(cwd: string, target: string): string {
   if (target.startsWith('/')) return target;
-  if (target.startsWith('~/')) return '/home/user/' + target.slice(2);
+  if (target.startsWith('~/')) return `/home/user/${target.slice(2)}`;
   if (target === '~') return '/home/user';
 
   const parts = cwd.split('/').filter(Boolean);
@@ -201,12 +201,12 @@ function normalizePath(cwd: string, target: string): string {
     }
   }
 
-  return '/' + parts.join('/');
+  return `/${parts.join('/')}`;
 }
 
 export function shortenPath(path: string): string {
   if (path === '/home/user') return '~';
-  if (path.startsWith('/home/user/')) return '~/' + path.slice('/home/user/'.length);
+  if (path.startsWith('/home/user/')) return `~/${path.slice('/home/user/'.length)}`;
   return path;
 }
 
@@ -305,7 +305,7 @@ export class TmuxEngine {
           return [{ type: 'error', content: 'no server running on /tmp/tmux-1000/default' }];
         }
         const lines = this.sessions.map(
-          (s) => `${s.name}: ${s.windows.length} windows (created Mon Jan 15 10:30:00 2024)`
+          (s) => `${s.name}: ${s.windows.length} windows (created Mon Jan 15 10:30:00 2024)`,
         );
         return [{ type: 'output', content: lines.join('\n') }];
       }
@@ -340,16 +340,18 @@ export class TmuxEngine {
     }
 
     if (command === 'help') {
-      return [{
-        type: 'output',
-        content: `Available commands:
+      return [
+        {
+          type: 'output',
+          content: `Available commands:
   tmux              Start a new tmux session
   tmux new -s name  Start a named session
   tmux ls           List sessions
   tmux attach -t n  Attach to a session
   help              Show this help
   clear             Clear screen`,
-      }];
+        },
+      ];
     }
 
     return [{ type: 'error', content: `${parts[0]}: command not found` }];
@@ -386,7 +388,7 @@ export class TmuxEngine {
     return window.panes.find((p) => p.id === window.activePaneId) || null;
   }
 
-  private createPane(cwd: string = '/home/user'): TmuxPane {
+  private createPane(cwd = '/home/user'): TmuxPane {
     const id = String(this.nextPaneId++);
     return {
       id,
@@ -397,7 +399,7 @@ export class TmuxEngine {
     };
   }
 
-  private createWindow(name: string = 'bash'): TmuxWindow {
+  private createWindow(name = 'bash'): TmuxWindow {
     const id = String(this.nextWindowId++);
     const pane = this.createPane();
     const index = this.getActiveSession()?.windows.length ?? 0;
@@ -429,10 +431,7 @@ export class TmuxEngine {
     this.isAttached = true;
     this.isInsideTmux = true;
 
-    this.addSystemMessage(
-      window.panes[0].id,
-      `[tmux] Session "${sessionName}" created`
-    );
+    this.addSystemMessage(window.panes[0].id, `[tmux] Session "${sessionName}" created`);
 
     this.emit({ type: 'state-changed' });
     return session;
@@ -524,7 +523,10 @@ export class TmuxEngine {
     const node = resolvePath(this.fs, target);
 
     if (!node) {
-      this.addError(pane.id, `ls: cannot access '${pathArgs[0] || target}': No such file or directory`);
+      this.addError(
+        pane.id,
+        `ls: cannot access '${pathArgs[0] || target}': No such file or directory`,
+      );
       return;
     }
 
@@ -546,11 +548,7 @@ export class TmuxEngine {
     if (!showHidden) {
       entries = entries.filter(([name]) => !name.startsWith('.'));
     } else {
-      entries = [
-        ['.', node],
-        ['..', node],
-        ...entries,
-      ] as [string, FSNode][];
+      entries = [['.', node], ['..', node], ...entries] as [string, FSNode][];
     }
 
     if (showLong) {
@@ -560,7 +558,7 @@ export class TmuxEngine {
         const size = isDir ? '4096' : String((child as FSNode).content?.length || 0);
         return `${perms}  1 user user  ${size.padStart(5)} Jan 15 10:30 ${name}${isDir ? '/' : ''}`;
       });
-      this.addOutput(pane.id, `total ${entries.length * 4}\n` + lines.join('\n'));
+      this.addOutput(pane.id, `total ${entries.length * 4}\n${lines.join('\n')}`);
     } else {
       const names = entries.map(([name, child]) => {
         const isDir = (child as FSNode).type === 'dir';
@@ -645,7 +643,7 @@ export class TmuxEngine {
   tmux [cmd]      tmux commands (new, ls, attach, split-window, etc.)
   whoami          Print current user
   hostname        Print hostname
-  date            Print current date`
+  date            Print current date`,
     );
   }
 
@@ -762,15 +760,9 @@ export class TmuxEngine {
     window.panes.push(newPane);
     window.activePaneId = newPane.id;
 
-    window.layout = this.insertIntoLayout(
-      window.layout,
-      activePane.id,
-      newPane.id,
-      direction
-    );
+    window.layout = this.insertIntoLayout(window.layout, activePane.id, newPane.id, direction);
 
-    const action =
-      direction === 'horizontal' ? 'pane-split-horizontal' : 'pane-split-vertical';
+    const action = direction === 'horizontal' ? 'pane-split-horizontal' : 'pane-split-vertical';
     this.recordAction(action);
     this.emit({ type: 'state-changed' });
   }
@@ -779,7 +771,7 @@ export class TmuxEngine {
     layout: PaneLayout,
     targetPaneId: string,
     newPaneId: string,
-    direction: 'horizontal' | 'vertical'
+    direction: 'horizontal' | 'vertical',
   ): PaneLayout {
     if (layout.type === 'leaf' && layout.paneId === targetPaneId) {
       return {
@@ -795,7 +787,7 @@ export class TmuxEngine {
       return {
         ...layout,
         children: layout.children.map((child) =>
-          this.insertIntoLayout(child, targetPaneId, newPaneId, direction)
+          this.insertIntoLayout(child, targetPaneId, newPaneId, direction),
         ),
       };
     }
@@ -816,7 +808,9 @@ export class TmuxEngine {
       nextIdx = (currentIdx - 1 + window.panes.length) % window.panes.length;
     }
 
-    window.panes.forEach((p) => (p.isActive = false));
+    for (const p of window.panes) {
+      p.isActive = false;
+    }
     window.panes[nextIdx].isActive = true;
     window.activePaneId = window.panes[nextIdx].id;
 
@@ -842,12 +836,12 @@ export class TmuxEngine {
     layout: PaneLayout,
     paneId: string,
     direction: 'up' | 'down' | 'left' | 'right',
-    step: number
+    step: number,
   ): boolean {
     if (!layout.children || layout.children.length < 2) return false;
 
     const idx = layout.children.findIndex(
-      (child) => child.type === 'leaf' && child.paneId === paneId
+      (child) => child.type === 'leaf' && child.paneId === paneId,
     );
 
     if (idx !== -1) {
@@ -907,7 +901,9 @@ export class TmuxEngine {
       this.closeWindow(window.id);
     } else {
       const newActive = window.panes[Math.min(paneIdx, window.panes.length - 1)];
-      window.panes.forEach((p) => (p.isActive = false));
+      for (const p of window.panes) {
+        p.isActive = false;
+      }
       newActive.isActive = true;
       window.activePaneId = newActive.id;
     }
@@ -923,7 +919,7 @@ export class TmuxEngine {
     if (!layout.children) return layout;
 
     const filtered = layout.children.filter(
-      (child) => !(child.type === 'leaf' && child.paneId === paneId)
+      (child) => !(child.type === 'leaf' && child.paneId === paneId),
     );
 
     if (filtered.length === 1) {
@@ -931,9 +927,9 @@ export class TmuxEngine {
     }
 
     const eachSize = 100 / filtered.length;
-    filtered.forEach((c) => {
+    for (const c of filtered) {
       c.size = eachSize;
-    });
+    }
 
     return {
       ...layout,
@@ -947,7 +943,9 @@ export class TmuxEngine {
 
     const currentWindow = this.getActiveWindow();
     if (currentWindow) {
-      currentWindow.panes.forEach((p) => (p.isActive = false));
+      for (const p of currentWindow.panes) {
+        p.isActive = false;
+      }
     }
 
     const window = this.createWindow(name || 'bash');
@@ -963,9 +961,7 @@ export class TmuxEngine {
     const session = this.getActiveSession();
     if (!session || session.windows.length < 2) return;
 
-    const currentIdx = session.windows.findIndex(
-      (w) => w.id === session.activeWindowId
-    );
+    const currentIdx = session.windows.findIndex((w) => w.id === session.activeWindowId);
     let nextIdx: number;
 
     if (direction === 'next') {
@@ -991,19 +987,17 @@ export class TmuxEngine {
   }
 
   private activateWindow(session: TmuxSession, index: number): void {
-    const oldWindow = session.windows.find(
-      (w) => w.id === session.activeWindowId
-    );
+    const oldWindow = session.windows.find((w) => w.id === session.activeWindowId);
     if (oldWindow) {
-      oldWindow.panes.forEach((p) => (p.isActive = false));
+      for (const p of oldWindow.panes) {
+        p.isActive = false;
+      }
     }
 
     const newWindow = session.windows[index];
     session.activeWindowId = newWindow.id;
 
-    const activePane = newWindow.panes.find(
-      (p) => p.id === newWindow.activePaneId
-    );
+    const activePane = newWindow.panes.find((p) => p.id === newWindow.activePaneId);
     if (activePane) {
       activePane.isActive = true;
     }
@@ -1029,7 +1023,9 @@ export class TmuxEngine {
     if (idx === -1) return;
 
     session.windows.splice(idx, 1);
-    session.windows.forEach((w, i) => (w.index = i));
+    for (let i = 0; i < session.windows.length; i++) {
+      session.windows[i].index = i;
+    }
 
     if (session.windows.length === 0) {
       this.sessions = this.sessions.filter((s) => s.id !== session.id);
@@ -1041,13 +1037,10 @@ export class TmuxEngine {
         this.activeSessionId = this.sessions[0].id;
       }
     } else {
-      session.activeWindowId =
-        session.windows[Math.min(idx, session.windows.length - 1)].id;
+      session.activeWindowId = session.windows[Math.min(idx, session.windows.length - 1)].id;
       const newActiveWindow = this.getActiveWindow();
       if (newActiveWindow) {
-        const activePane = newActiveWindow.panes.find(
-          (p) => p.id === newActiveWindow.activePaneId
-        );
+        const activePane = newActiveWindow.panes.find((p) => p.id === newActiveWindow.activePaneId);
         if (activePane) activePane.isActive = true;
       }
     }
@@ -1066,7 +1059,9 @@ export class TmuxEngine {
     const session = this.getActiveSession();
     if (session) {
       for (const w of session.windows) {
-        w.panes.forEach((p) => (p.isActive = false));
+        for (const p of w.panes) {
+          p.isActive = false;
+        }
       }
     }
 
@@ -1186,20 +1181,36 @@ export class TmuxEngine {
           this.splitPane('vertical');
           return true;
         case 'ArrowUp':
-          if (e.ctrlKey) { this.resizePane('up'); this.activatePrefix(); }
-          else { this.navigatePane('up'); }
+          if (e.ctrlKey) {
+            this.resizePane('up');
+            this.activatePrefix();
+          } else {
+            this.navigatePane('up');
+          }
           return true;
         case 'ArrowDown':
-          if (e.ctrlKey) { this.resizePane('down'); this.activatePrefix(); }
-          else { this.navigatePane('down'); }
+          if (e.ctrlKey) {
+            this.resizePane('down');
+            this.activatePrefix();
+          } else {
+            this.navigatePane('down');
+          }
           return true;
         case 'ArrowLeft':
-          if (e.ctrlKey) { this.resizePane('left'); this.activatePrefix(); }
-          else { this.navigatePane('left'); }
+          if (e.ctrlKey) {
+            this.resizePane('left');
+            this.activatePrefix();
+          } else {
+            this.navigatePane('left');
+          }
           return true;
         case 'ArrowRight':
-          if (e.ctrlKey) { this.resizePane('right'); this.activatePrefix(); }
-          else { this.navigatePane('right'); }
+          if (e.ctrlKey) {
+            this.resizePane('right');
+            this.activatePrefix();
+          } else {
+            this.navigatePane('right');
+          }
           return true;
         case 'c':
           this.createNewWindow();
@@ -1247,7 +1258,7 @@ export class TmuxEngine {
           return true;
         default:
           if (e.key >= '0' && e.key <= '9') {
-            this.switchWindowByNumber(parseInt(e.key));
+            this.switchWindowByNumber(Number.parseInt(e.key));
             return true;
           }
       }
@@ -1411,9 +1422,7 @@ export class TmuxEngine {
 
     if (!node || node.type !== 'dir' || !node.children) return;
 
-    const matches = Object.keys(node.children).filter((name) =>
-      name.startsWith(prefix)
-    );
+    const matches = Object.keys(node.children).filter((name) => name.startsWith(prefix));
 
     if (matches.length === 1) {
       const match = matches[0];
@@ -1434,7 +1443,9 @@ export class TmuxEngine {
     const pane = window.panes.find((p) => p.id === paneId);
     if (!pane) return;
 
-    window.panes.forEach((p) => (p.isActive = false));
+    for (const p of window.panes) {
+      p.isActive = false;
+    }
     pane.isActive = true;
     window.activePaneId = paneId;
 

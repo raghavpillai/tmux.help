@@ -42,7 +42,8 @@ export const curriculum: Curriculum = [
     id: 'welcome',
     title: 'Welcome to tmux',
     icon: '🚀',
-    description: 'Get introduced to tmux and learn the fundamental concepts that make it indispensable for terminal power users.',
+    description:
+      'Get introduced to tmux and learn the fundamental concepts that make it indispensable for terminal power users.',
     lessons: [
       {
         id: 'what-is-tmux',
@@ -85,9 +86,7 @@ export const curriculum: Curriculum = [
           'Press Ctrl+b and then release both keys. This activates the tmux prefix.',
           'The prefix is Ctrl+b — hold the Control key, tap b, then release.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b'], label: 'Prefix key', isSequential: false },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b'], label: 'Prefix key', isSequential: false }],
         validation: { type: 'action', action: 'prefix-activated' },
         congratsMessage:
           'You activated the prefix key! Every tmux shortcut begins with Ctrl+b. This is the foundation of all tmux commands.',
@@ -118,7 +117,8 @@ export const curriculum: Curriculum = [
     id: 'panes',
     title: 'Panes — Split Your World',
     icon: '🪟',
-    description: 'Learn to split your terminal into multiple panes so you can see and work on several things at once.',
+    description:
+      'Learn to split your terminal into multiple panes so you can see and work on several things at once.',
     lessons: [
       {
         id: 'split-vertically',
@@ -131,9 +131,7 @@ export const curriculum: Curriculum = [
           'The prefix is Ctrl+b, then the percent sign % creates a vertical split.',
           'Ctrl+b, release, then Shift+5 to type %. You should see two panes appear side by side.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', '%'], label: 'Split vertically', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', '%'], label: 'Split vertically', isSequential: true }],
         validation: { type: 'action', action: 'pane-split-horizontal' },
         congratsMessage:
           'Nice split! You now have two panes side by side. In tmux, % creates a vertical divider (which tmux internally calls a "horizontal" split).',
@@ -149,9 +147,7 @@ export const curriculum: Curriculum = [
           'The prefix is Ctrl+b, then the double-quote key " creates a horizontal split.',
           'Ctrl+b, release, then Shift+\' to type ". You should see a pane appear above or below.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', '"'], label: 'Split horizontally', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', '"'], label: 'Split horizontally', isSequential: true }],
         validation: { type: 'action', action: 'pane-split-vertical' },
         congratsMessage:
           'You split horizontally! You can now arrange panes in any combination of side-by-side and stacked layouts.',
@@ -167,9 +163,7 @@ export const curriculum: Curriculum = [
           'First the prefix (Ctrl+b), then an arrow key pointing toward the pane you want.',
           'Try Ctrl+b then the Right arrow if you have a pane to the right.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', '←↑↓→'], label: 'Navigate panes', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', '←↑↓→'], label: 'Navigate panes', isSequential: true }],
         validation: { type: 'action', action: 'pane-navigated' },
         congratsMessage:
           'You moved between panes! Use this constantly to jump around your workspace.',
@@ -203,9 +197,7 @@ export const curriculum: Curriculum = [
           'The prefix (Ctrl+b) followed by z toggles zoom. Try it!',
           'Ctrl+b then z — the pane will expand to fill the window. Press it again to unzoom.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', 'z'], label: 'Zoom pane', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', 'z'], label: 'Zoom pane', isSequential: true }],
         validation: { type: 'action', action: 'pane-zoomed' },
         congratsMessage:
           'Zoomed! This is incredibly handy when you need to focus on one thing without losing your layout.',
@@ -221,9 +213,7 @@ export const curriculum: Curriculum = [
           'After pressing Ctrl+b then x, tmux will ask you to confirm — press y to confirm.',
           'Ctrl+b then x closes the pane. You can also type `exit` and press Enter.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', 'x'], label: 'Close pane', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', 'x'], label: 'Close pane', isSequential: true }],
         validation: { type: 'action', action: 'pane-closed' },
         congratsMessage:
           'Pane closed! You have mastered the full pane lifecycle — create, navigate, resize, zoom, and close.',
@@ -236,7 +226,8 @@ export const curriculum: Curriculum = [
     id: 'windows',
     title: 'Windows — Multiple Workspaces',
     icon: '📑',
-    description: 'Learn to use windows as tabs inside tmux to organize different tasks within a single session.',
+    description:
+      'Learn to use windows as tabs inside tmux to organize different tasks within a single session.',
     lessons: [
       {
         id: 'create-window',
@@ -249,9 +240,7 @@ export const curriculum: Curriculum = [
           'c stands for "create." Press the prefix first, then c.',
           'Ctrl+b then c — look at the status bar to see your new window.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', 'c'], label: 'Create window', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', 'c'], label: 'Create window', isSequential: true }],
         validation: { type: 'action', action: 'window-created' },
         congratsMessage:
           'New window created! Check the status bar — you can see all your windows listed there.',
@@ -286,9 +275,7 @@ export const curriculum: Curriculum = [
           'Look at the status bar to see which numbers are assigned to your windows.',
           'Ctrl+b then 0 goes to the first window, Ctrl+b then 1 goes to the second, and so on.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', '0-9'], label: 'Go to window #', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', '0-9'], label: 'Go to window #', isSequential: true }],
         validation: { type: 'action', action: 'window-switched-by-number' },
         congratsMessage:
           'Direct jump! Switching by number is the fastest way to navigate when you know where you are going.',
@@ -304,9 +291,7 @@ export const curriculum: Curriculum = [
           'After pressing Ctrl+b then , you will see a rename prompt. Type a name and hit Enter.',
           'Ctrl+b then , — clear the current name with Ctrl+u, type your new name, then Enter.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', ','], label: 'Rename window', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', ','], label: 'Rename window', isSequential: true }],
         validation: { type: 'action', action: 'window-renamed' },
         congratsMessage:
           'Window renamed! Giving windows meaningful names makes it much easier to stay organized.',
@@ -322,9 +307,7 @@ export const curriculum: Curriculum = [
           'After pressing Ctrl+b then &, tmux asks for confirmation. Press y to confirm.',
           'Ctrl+b then & — confirm with y. The window and all its panes will close.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', '&'], label: 'Close window', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', '&'], label: 'Close window', isSequential: true }],
         validation: { type: 'action', action: 'window-closed' },
         congratsMessage:
           'Window closed! You now know how to fully manage windows — create, switch, rename, and close them.',
@@ -337,7 +320,8 @@ export const curriculum: Curriculum = [
     id: 'sessions',
     title: 'Sessions — The Big Picture',
     icon: '🗂️',
-    description: 'Learn to manage sessions — the top-level containers that let you organize entire projects and persist your work.',
+    description:
+      'Learn to manage sessions — the top-level containers that let you organize entire projects and persist your work.',
     lessons: [
       {
         id: 'detach-session',
@@ -350,9 +334,7 @@ export const curriculum: Curriculum = [
           'd stands for "detach." The session keeps running in the background.',
           'Ctrl+b then d — you will be dropped back to the regular terminal. The session is still alive.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', 'd'], label: 'Detach session', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', 'd'], label: 'Detach session', isSequential: true }],
         validation: { type: 'action', action: 'session-detached' },
         congratsMessage:
           'You detached! The session is still running in the background. This is what makes tmux essential for remote work.',
@@ -410,7 +392,8 @@ export const curriculum: Curriculum = [
     id: 'copy-mode',
     title: 'Copy Mode — Scrollback & Search',
     icon: '📋',
-    description: 'Learn to scroll through terminal output and search for text using tmux copy mode.',
+    description:
+      'Learn to scroll through terminal output and search for text using tmux copy mode.',
     lessons: [
       {
         id: 'enter-copy-mode',
@@ -423,9 +406,7 @@ export const curriculum: Curriculum = [
           'The [ key enters copy mode. You will see a position indicator in the top right.',
           'Ctrl+b then [ — once in copy mode, try using the arrow keys to scroll.',
         ],
-        keysToShow: [
-          { keys: ['Ctrl', 'b', '['], label: 'Enter copy mode', isSequential: true },
-        ],
+        keysToShow: [{ keys: ['Ctrl', 'b', '['], label: 'Enter copy mode', isSequential: true }],
         validation: { type: 'action', action: 'copy-mode-entered' },
         congratsMessage:
           'You are in copy mode! You can now scroll through your terminal history. Use arrow keys or Page Up/Down to navigate.',
@@ -457,7 +438,8 @@ export const curriculum: Curriculum = [
     id: 'pro-tips',
     title: 'Pro Tips & Customization',
     icon: '⚙️',
-    description: 'Discover how to customize tmux and make it truly your own with configuration files and advanced tips.',
+    description:
+      'Discover how to customize tmux and make it truly your own with configuration files and advanced tips.',
     lessons: [
       {
         id: 'tmux-conf',
@@ -506,4 +488,3 @@ export function getNextLesson(currentId: string): Lesson | undefined {
   if (index === -1 || index === allLessons.length - 1) return undefined;
   return allLessons[index + 1];
 }
-

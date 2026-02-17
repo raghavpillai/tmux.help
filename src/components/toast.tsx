@@ -49,7 +49,11 @@ export function Toast({ message, type, onDismiss, duration = 3000 }: ToastProps)
           fontFamily: "'Geist Mono', monospace",
         }}
       >
-        <span style={{ color: type === 'success' ? '#41b65c' : type === 'error' ? '#e55048' : '#4e9af5' }}>
+        <span
+          style={{
+            color: type === 'success' ? '#41b65c' : type === 'error' ? '#e55048' : '#4e9af5',
+          }}
+        >
           {prefix[type]}
         </span>
         <span>{message}</span>

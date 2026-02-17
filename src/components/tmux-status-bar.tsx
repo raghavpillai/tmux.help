@@ -32,8 +32,6 @@ export function TmuxStatusBar({ sessionName, windows, prefixActive, mode }: Tmux
         fontFamily: "'Geist Mono', monospace",
         letterSpacing: '0.01em',
       }}
-      role="status"
-      aria-label={`tmux status bar - session ${sessionName}${prefixActive ? ' - prefix active' : ''}`}
     >
       {/* Session name */}
       <span
@@ -56,7 +54,8 @@ export function TmuxStatusBar({ sessionName, windows, prefixActive, mode }: Tmux
               fontWeight: win.isActive ? 600 : 400,
             }}
           >
-            {win.index}:{win.name}{win.isActive ? '*' : '-'}
+            {win.index}:{win.name}
+            {win.isActive ? '*' : '-'}
           </span>
         ))}
       </div>
@@ -82,10 +81,7 @@ export function TmuxStatusBar({ sessionName, windows, prefixActive, mode }: Tmux
       )}
 
       {/* Right side: hostname + time */}
-      <span
-        className="px-2 h-full flex items-center"
-        style={{ color: 'rgba(255,255,255,0.7)' }}
-      >
+      <span className="px-2 h-full flex items-center" style={{ color: 'rgba(255,255,255,0.7)' }}>
         "tmux-learn" {time}
       </span>
     </div>

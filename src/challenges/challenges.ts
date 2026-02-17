@@ -1,5 +1,5 @@
-import type { ValidationRule } from '../lessons/curriculum';
 import type { TmuxState } from '../engine/tmux-engine';
+import type { ValidationRule } from '../lessons/curriculum';
 
 export interface ChallengeTask {
   instruction: string;

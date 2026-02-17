@@ -14,18 +14,9 @@ export function TerminalTitleBar({ title }: TerminalTitleBarProps) {
     >
       {/* Traffic light buttons */}
       <div className="flex gap-2 shrink-0" aria-hidden="true">
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ background: '#a3413a' }}
-        />
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ background: '#a18332' }}
-        />
-        <div
-          className="w-3 h-3 rounded-full"
-          style={{ background: '#3f8a35' }}
-        />
+        <div className="w-3 h-3 rounded-full" style={{ background: '#a3413a' }} />
+        <div className="w-3 h-3 rounded-full" style={{ background: '#a18332' }} />
+        <div className="w-3 h-3 rounded-full" style={{ background: '#3f8a35' }} />
       </div>
 
       {/* Title */}
