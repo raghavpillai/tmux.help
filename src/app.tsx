@@ -15,6 +15,27 @@ import { taskPool, pickRandomTask } from './challenges/challenges';
 
 export type AppMode = 'learn' | 'challenge';
 
+function hasMatchingCommand(engine: TmuxEngine, cmd: string): boolean {
+  const state = engine.getState();
+  for (const session of state.sessions) {
+    for (const window of session.windows) {
+      for (const pane of window.panes) {
+        for (const line of pane.shellHistory) {
+          if (line.type === 'input' && line.content.trim().includes(cmd)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  for (const typed of engine.getTypedCommands()) {
+    if (typed.includes(cmd)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function App() {
   const engineRef = useRef<TmuxEngine | null>(null);
   const [, forceUpdate] = useState(0);
@@ -103,25 +124,8 @@ function App() {
         }
 
         if (event.type === 'state-changed' && task.validation.type === 'command' && task.validation.command) {
-          const cmd = task.validation.command;
-          const state = engine.getState();
-          for (const session of state.sessions) {
-            for (const window of session.windows) {
-              for (const pane of window.panes) {
-                for (const line of pane.shellHistory) {
-                  if (line.type === 'input' && line.content.trim().includes(cmd)) {
-                    completeTask();
-                    return;
-                  }
-                }
-              }
-            }
-          }
-          for (const typed of engine.getTypedCommands()) {
-            if (typed.includes(cmd)) {
-              completeTask();
-              return;
-            }
+          if (hasMatchingCommand(engine, task.validation.command)) {
+            completeTask();
           }
         }
         return;
@@ -156,25 +160,8 @@ function App() {
         const { validation } = lesson;
         if (validation.type !== 'command' || !validation.command) return;
 
-        const state = engine.getState();
-        for (const session of state.sessions) {
-          for (const window of session.windows) {
-            for (const pane of window.panes) {
-              for (const line of pane.shellHistory) {
-                if (line.type === 'input' && line.content.trim().includes(validation.command!)) {
-                  completeLesson(lesson.id, lesson.congratsMessage);
-                  return;
-                }
-              }
-            }
-          }
-        }
-
-        for (const cmd of engine.getTypedCommands()) {
-          if (cmd.includes(validation.command!)) {
-            completeLesson(lesson.id, lesson.congratsMessage);
-            return;
-          }
+        if (hasMatchingCommand(engine, validation.command!)) {
+          completeLesson(lesson.id, lesson.congratsMessage);
         }
       }
     };
@@ -431,78 +418,15 @@ function PreTmuxTerminal({
         return;
       }
 
-      if (command === 'tmux' || command.startsWith('tmux ')) {
-        const parts = command.split(/\s+/);
-        if (parts.length === 1) {
-          engine.createSession();
-          return;
-        }
-
-        const subCmd = parts[1];
-        if (subCmd === 'ls' || subCmd === 'list-sessions') {
-          const state = engine.getState();
-          if (state.sessions.length === 0) {
-            setLines((prev) => [...prev, { type: 'error', content: 'no server running on /tmp/tmux-1000/default' }]);
-          } else {
-            const sessionLines = state.sessions.map((s) => `${s.name}: ${s.windows.length} windows (created Mon Jan 15 10:30:00 2024)`);
-            setLines((prev) => [...prev, { type: 'output', content: sessionLines.join('\n') }]);
-          }
-          return;
-        }
-
-        if (subCmd === 'new' || subCmd === 'new-session') {
-          const sIdx = parts.indexOf('-s');
-          const name = sIdx !== -1 ? parts[sIdx + 1] : undefined;
-          engine.createSession(name);
-          return;
-        }
-
-        if (subCmd === 'attach' || subCmd === 'attach-session' || subCmd === 'a') {
-          const state = engine.getState();
-          if (state.sessions.length === 0) {
-            setLines((prev) => [...prev, { type: 'error', content: 'no sessions' }]);
-            return;
-          }
-          const tIdx = parts.indexOf('-t');
-          const targetName = tIdx !== -1 ? parts[tIdx + 1] : undefined;
-          if (targetName) {
-            const session = state.sessions.find((s) => s.name === targetName);
-            if (!session) {
-              setLines((prev) => [...prev, { type: 'error', content: `can't find session: ${targetName}` }]);
-              return;
-            }
-          }
-          const pane = engine.getActivePane();
-          if (pane) {
-            engine.executeCommand(pane.id, command);
-          }
-          return;
-        }
-
-        setLines((prev) => [...prev, { type: 'error', content: `tmux: unknown command: ${subCmd}` }]);
-        return;
-      }
-
-      if (command === 'help') {
-        setLines((prev) => [...prev, {
-          type: 'output',
-          content: `Available commands:
-  tmux              Start a new tmux session
-  tmux new -s name  Start a named session
-  tmux ls           List sessions
-  tmux attach -t n  Attach to a session
-  help              Show this help
-  clear             Clear screen`,
-        }]);
-        return;
-      }
-
       if (command === 'clear') {
         setLines([]);
         return;
       }
 
-      setLines((prev) => [...prev, { type: 'error', content: `${command.split(' ')[0]}: command not found` }]);
+      const outputLines = engine.executePreTmuxCommand(command);
+      if (outputLines.length > 0) {
+        setLines((prev) => [...prev, ...outputLines]);
+      }
     } else if (e.ctrlKey && e.key === 'l') {
       e.preventDefault();
       setLines([]);

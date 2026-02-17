@@ -204,6 +204,12 @@ function normalizePath(cwd: string, target: string): string {
   return '/' + parts.join('/');
 }
 
+export function shortenPath(path: string): string {
+  if (path === '/home/user') return '~';
+  if (path.startsWith('/home/user/')) return '~/' + path.slice('/home/user/'.length);
+  return path;
+}
+
 export class TmuxEngine {
   private sessions: TmuxSession[] = [];
   private activeSessionId: string | null = null;
@@ -282,6 +288,71 @@ export class TmuxEngine {
 
   getTypedCommands(): string[] {
     return [...this.typedCommands];
+  }
+
+  executePreTmuxCommand(command: string): ShellLine[] {
+    const parts = command.split(/\s+/);
+
+    if (parts[0] === 'tmux' || command === 'tmux') {
+      if (parts.length === 1) {
+        this.createSession();
+        return [];
+      }
+
+      const subCmd = parts[1];
+      if (subCmd === 'ls' || subCmd === 'list-sessions') {
+        if (this.sessions.length === 0) {
+          return [{ type: 'error', content: 'no server running on /tmp/tmux-1000/default' }];
+        }
+        const lines = this.sessions.map(
+          (s) => `${s.name}: ${s.windows.length} windows (created Mon Jan 15 10:30:00 2024)`
+        );
+        return [{ type: 'output', content: lines.join('\n') }];
+      }
+
+      if (subCmd === 'new' || subCmd === 'new-session') {
+        const sIdx = parts.indexOf('-s');
+        const name = sIdx !== -1 ? parts[sIdx + 1] : undefined;
+        this.createSession(name);
+        return [];
+      }
+
+      if (subCmd === 'attach' || subCmd === 'attach-session' || subCmd === 'a') {
+        if (this.sessions.length === 0) {
+          return [{ type: 'error', content: 'no sessions' }];
+        }
+        const tIdx = parts.indexOf('-t');
+        const targetName = tIdx !== -1 ? parts[tIdx + 1] : undefined;
+        if (targetName) {
+          const session = this.sessions.find((s) => s.name === targetName);
+          if (!session) {
+            return [{ type: 'error', content: `can't find session: ${targetName}` }];
+          }
+        }
+        const pane = this.getActivePane();
+        if (pane) {
+          this.executeCommand(pane.id, command);
+        }
+        return [];
+      }
+
+      return [{ type: 'error', content: `tmux: unknown command: ${subCmd}` }];
+    }
+
+    if (command === 'help') {
+      return [{
+        type: 'output',
+        content: `Available commands:
+  tmux              Start a new tmux session
+  tmux new -s name  Start a named session
+  tmux ls           List sessions
+  tmux attach -t n  Attach to a session
+  help              Show this help
+  clear             Clear screen`,
+      }];
+    }
+
+    return [{ type: 'error', content: `${parts[0]}: command not found` }];
   }
 
   getState(): TmuxState {
@@ -376,7 +447,7 @@ export class TmuxEngine {
       return;
     }
 
-    const prompt = `user@tmux-learn:${this.shortenPath(pane.cwd)}$ `;
+    const prompt = `user@tmux-learn:${shortenPath(pane.cwd)}$ `;
 
     pane.shellHistory.push({
       type: 'input',
@@ -1283,12 +1354,6 @@ export class TmuxEngine {
     pane.shellHistory.push({ type: 'system', content });
   }
 
-  private shortenPath(path: string): string {
-    if (path === '/home/user') return '~';
-    if (path.startsWith('/home/user/')) return '~/' + path.slice('/home/user/'.length);
-    return path;
-  }
-
   handlePaneInput(paneId: string, char: string): void {
     const pane = this.findPane(paneId);
     if (!pane) return;
@@ -1321,7 +1386,7 @@ export class TmuxEngine {
     } else if (e.ctrlKey && e.key === 'c') {
       e.preventDefault();
       pane.currentInput = '';
-      const prompt = `user@tmux-learn:${this.shortenPath(pane.cwd)}$ `;
+      const prompt = `user@tmux-learn:${shortenPath(pane.cwd)}$ `;
       pane.shellHistory.push({ type: 'input', content: '^C', prompt });
       this.emit({ type: 'state-changed' });
     } else if (e.ctrlKey && e.key === 'l') {

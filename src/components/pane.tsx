@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { ShellLine } from '../types';
+import { shortenPath } from '../engine/tmux-engine';
 
 interface PaneProps {
   paneId: string;
@@ -136,10 +137,4 @@ export function Pane({
       )}
     </div>
   );
-}
-
-function shortenPath(path: string): string {
-  if (path === '/home/user') return '~';
-  if (path.startsWith('/home/user/')) return '~/' + path.slice('/home/user/'.length);
-  return path;
 }
